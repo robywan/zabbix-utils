@@ -1,7 +1,7 @@
 #!/bin/sh
 
 usage() {
-  echo "Usage: $0 -s <zabbix_host> -k <zabbix_item_key> <value>"
+  echo "Usage: $0 [-s <zabbix_host>] -k <zabbix_item_key> <value>"
   exit 1
 }
 
@@ -18,14 +18,19 @@ while getopts "s:k:" opt; do
   esac
 done
 
-if [ -z "$ZBX_HOST" ] || [ -z "$ZBX_ITEM_KEY" ]; then
+if [ -z "$ZBX_ITEM_KEY" ]; then
   usage
 fi
 
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 if [ $# -eq 0 ]; then
   usage
 fi
 VALUE="$*"
 
-exec zabbix_sender --config "$ZBX_SENDER_CONFIG" -s "$ZBX_HOST" --key "$ZBX_ITEM_KEY" --value "$VALUE"
+# Aggiungi il parametro -s solo se ZBX_HOST è definito
+if [ -n "$ZBX_HOST" ]; then
+  exec zabbix_sender --config "$ZBX_SENDER_CONFIG" -s "$ZBX_HOST" --key "$ZBX_ITEM_KEY" --value "$VALUE"
+else
+  exec zabbix_sender --config "$ZBX_SENDER_CONFIG" --key "$ZBX_ITEM_KEY" --value "$VALUE"
+fi
