@@ -5,10 +5,26 @@ usage() {
   exit 1
 }
 
+find_config() {
+  if [ -f /etc/zabbix/zabbix_agent2.conf ]; then
+    echo "/etc/zabbix/zabbix_agent2.conf"
+  elif [ -f /etc/zabbix/zabbix_agentd.conf ]; then
+    echo "/etc/zabbix/zabbix_agentd.conf"
+  else
+    echo ""
+  fi
+}
+
 ZBX_HOST=""
 ZBX_ITEM_KEY=""
-ZBX_SENDER_CONFIG="${ZBX_SENDER_CONFIG:-/etc/zabbix/zabbix_agentd.conf}"
 VALUE=""
+
+ZBX_SENDER_CONFIG="${ZBX_SENDER_CONFIG:-$(find_config)}"
+
+if [ -z "$ZBX_SENDER_CONFIG" ] || [ ! -f "$ZBX_SENDER_CONFIG" ]; then
+  echo "Error: No Zabbix configuration file found."
+  exit 1
+fi
 
 while getopts "s:k:" opt; do
   case $opt in
